@@ -429,7 +429,7 @@ export default function App() {
         </main>
 
         {/* ── Footer ── */}
-        <footer className="text-center text-xs text-gray-600 pb-8">
+        <footer className="text-center text-xs text-gray-500 dark:text-gray-600 pb-8">
           StealthStrip — Your privacy, stripped clean.
         </footer>
 
