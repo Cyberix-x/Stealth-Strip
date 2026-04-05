@@ -34,7 +34,6 @@ stealthstrip/
 ├── tailwind.config.js
 ├── postcss.config.js
 ├── vercel.json           ← Serverless routing config
-├── .env.example          ← Required env vars
 └── package.json
 ```
 
