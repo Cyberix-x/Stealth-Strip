@@ -278,10 +278,10 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             {counter !== null && (
-              <span className="text-xs text-gray-500">
-                <span className="text-violet-400 font-semibold">{counter.toLocaleString()}</span> files cleaned globally
-              </span>
-            )}
+  <span className="text-xs text-gray-600 dark:text-gray-500">
+    <span className="text-violet-600 dark:text-violet-400 font-semibold">{counter.toLocaleString()}</span> files cleaned globally
+  </span>
+)}
             <button
               onClick={() => setDark((d) => !d)}
               className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
@@ -302,9 +302,8 @@ export default function App() {
               </span>
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-base max-w-xl mx-auto leading-relaxed">
-              Your EXIF data reveals GPS coordinates, camera model, timestamps and more.
-              StealthStrip removes it all — processed securely on our server, never shared.
-            </p>
+  Your EXIF data reveals GPS coordinates...
+</p>
           </div>
 
           {/* ── Drop Zone ── */}
@@ -345,9 +344,9 @@ export default function App() {
                     <FileImage size={18} className="text-violet-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white truncate max-w-[220px]">{file.name}</p>
-                    <p className="text-xs text-gray-500">{formatBytes(file.size)}</p>
-                  </div>
+  <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[220px]">{file.name}</p>
+  <p className="text-xs text-gray-600 dark:text-gray-500">{formatBytes(file.size)}</p>
+</div>
                 </div>
                 <button onClick={reset} className="text-gray-500 hover:text-white transition-colors">
                   <X size={18} />
