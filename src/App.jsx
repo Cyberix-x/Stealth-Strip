@@ -269,7 +269,7 @@ export default function App() {
    <div className={dark ? "dark" : "light"}>
   <div className="min-h-screen bg-white dark:bg-[#030712] text-gray-900 dark:text-white font-sans transition-colors duration-300">
         {/* ── Nav ── */}
-        <nav className="flex items-center justify-between px-8 py-5 border-b border-white/5">
+        <nav className="flex items-center justify-between px-8 py-5 border-b border-black/5 dark:border-white/5">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
               <ShieldCheck size={14} />
