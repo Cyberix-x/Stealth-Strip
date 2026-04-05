@@ -301,7 +301,7 @@ export default function App() {
                 Privately & Instantly
               </span>
             </h1>
-            <p className="text-gray-400 text-base max-w-xl mx-auto leading-relaxed">
+            <p className="text-gray-600 dark:text-gray-400 text-base max-w-xl mx-auto leading-relaxed">
               Your EXIF data reveals GPS coordinates, camera model, timestamps and more.
               StealthStrip removes it all — processed securely on our server, never shared.
             </p>
