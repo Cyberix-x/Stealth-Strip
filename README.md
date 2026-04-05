@@ -3,7 +3,7 @@
 > Free, private image metadata remover — MERN-lite on Vercel
 
 ---
-##Live Demo
+## Live Demo
 https://stealth-strip.vercel.app
 
 ## Stack
