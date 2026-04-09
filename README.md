@@ -45,7 +45,7 @@ stealthstrip/
 
 ### 1. Clone & install
 ```bash
-git clone <your-repo>
+git clone https://github.com/Cyberix-x/Stealth-Strip.git
 cd stealthstrip
 npm install
 ```
