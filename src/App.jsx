@@ -37,13 +37,6 @@ const GPS_TAGS = ["GPSLatitude", "GPSLongitude", "GPSAltitude", "GPSPosition", "
 const CAMERA_TAGS = ["Make", "Model", "Software", "DateTime", "DateTimeOriginal", "LensModel"];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function assessRisk(tags) {
-  const keys = Object.keys(tags);
-  if (keys.some((k) => GPS_TAGS.some((g) => k.startsWith(g)))) return "CRITICAL";
-  if (keys.some((k) => CAMERA_TAGS.includes(k))) return "WARNING";
-  return "SAFE";
-}
-
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -57,24 +50,12 @@ function tagValue(tag) {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-function Toast({ message, type, onClose }) {
-  const isError = type === "error";
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border shadow-2xl animate-slide-up
-        ${isError ? "bg-red-900 border-red-500/40 text-red-50" : "bg-emerald-900 border-emerald-500/40 text-emerald-50"}`}>
-      {isError ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
-      <span className="text-sm font-medium">{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={15} /></button>
-    </div>
-  );
-}
-
 function MetaTable({ title, tags, empty }) {
   const [open, setOpen] = useState(true);
   const rows = Object.entries(tags || {});
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden bg-gray-50/50 dark:bg-white/2">
-      <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between px-5 py-3 bg-gray-100/50 dark:bg-white/3 hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors">
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#0c111d]">
+      <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between px-5 py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
         <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400">{title}</span>
         <span className="flex items-center gap-2">
           <span className="text-xs text-gray-400">{rows.length} tags</span>
@@ -111,33 +92,6 @@ function MetaTable({ title, tags, empty }) {
   );
 }
 
-function SizeBar({ original, cleaned }) {
-  const pct = cleaned ? Math.round((1 - cleaned / original) * 100) : 0;
-  return (
-    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/2 px-5 py-4 space-y-3">
-      <p className="text-[10px] font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400">Security Compression</p>
-      <div className="flex items-end gap-6">
-        <div>
-          <p className="text-[11px] text-gray-400 mb-1">Original</p>
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">{formatBytes(original)}</p>
-        </div>
-        <div className="text-gray-300 pb-1">→</div>
-        <div>
-          <p className="text-[11px] text-gray-400 mb-1">Cleaned</p>
-          <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">{cleaned ? formatBytes(cleaned) : "—"}</p>
-        </div>
-        {pct > 0 && (
-          <div className="ml-auto pb-1">
-            <span className="text-xs bg-emerald-100 dark:bg-emerald-400/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-400/25 rounded-full px-3 py-1">
-              -{pct}% footprint
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [dark, setDark] = useState(true);
@@ -156,6 +110,13 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   }, []);
 
+  const assessRisk = (extractedTags) => {
+    const keys = Object.keys(extractedTags);
+    if (keys.some((k) => GPS_TAGS.some((g) => k.startsWith(g)))) return "CRITICAL";
+    if (keys.some((k) => CAMERA_TAGS.includes(k))) return "WARNING";
+    return "SAFE";
+  };
+
   const analyzeFile = useCallback(async (f) => {
     if (!f.type.startsWith("image/")) {
       showToast("Unsupported file type.", "error");
@@ -163,8 +124,6 @@ export default function App() {
     }
     setFile(f);
     setResult(null);
-    setTags(null);
-    setRisk(null);
     try {
       const buf = await f.arrayBuffer();
       const extracted = ExifReader.load(buf, { expanded: true });
@@ -180,13 +139,6 @@ export default function App() {
       setRisk("SAFE");
     }
   }, [showToast]);
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const f = e.dataTransfer.files[0];
-    if (f) analyzeFile(f);
-  };
 
   const handleStrip = async () => {
     if (!file) return;
@@ -208,8 +160,6 @@ export default function App() {
     }
   };
 
-  const reset = () => { setFile(null); setTags(null); setRisk(null); setResult(null); };
-
   const riskInfo = risk ? RISK_LEVELS[risk] : null;
   const RiskIcon = riskInfo?.icon;
 
@@ -226,7 +176,7 @@ export default function App() {
           <div className="flex items-center gap-4">
             {counter !== null && (
               <span className="text-xs text-gray-500">
-                <span className="text-indigo-600 dark:text-indigo-400 font-bold">{counter.toLocaleString()}</span> files secured
+                <span className="text-indigo-600 dark:text-indigo-400 font-bold">{counter.toLocaleString()}</span> secured
               </span>
             )}
             <button onClick={() => setDark(!dark)} className="p-2 rounded-lg bg-gray-200 dark:bg-white/5 hover:bg-gray-300 dark:hover:bg-white/10 transition-colors">
@@ -237,89 +187,98 @@ export default function App() {
 
         <main className="max-w-3xl mx-auto px-6 pt-16 pb-20">
           <div className="text-center mb-12 space-y-4">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
               Scrub Image Metadata <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-400">
-                Privately & Securely
-              </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-400">Privately & Securely</span>
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-base max-w-xl mx-auto">
-              Metadata Analysis: Sensitive location coordinates and device identifiers detected.
-            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Metadata Analysis: Sensitive location coordinates and device identifiers detected.</p>
           </div>
 
           {!file ? (
             <div
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
-              onDrop={handleDrop}
+              onDrop={(e) => { e.preventDefault(); setDragging(false); if(e.dataTransfer.files[0]) analyzeFile(e.dataTransfer.files[0]); }}
               onClick={() => inputRef.current.click()}
               className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer flex flex-col items-center justify-center gap-4 py-20
-                ${dragging 
-                  ? "border-indigo-500 bg-indigo-500/10" 
-                  : "border-gray-300 dark:border-white/10 bg-white dark:bg-[#0c111d] hover:border-gray-400 dark:hover:border-white/20 shadow-sm dark:shadow-none"}`}
+                ${dragging ? "border-indigo-500 bg-indigo-500/10" : "border-gray-300 dark:border-white/10 bg-white dark:bg-[#0c111d] hover:border-gray-400 dark:hover:border-white/20"}`}
             >
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all
-                ${dragging ? "bg-indigo-500/20 text-indigo-400" : "bg-gray-100 dark:bg-white/5 text-gray-400"}`}>
-                <Upload size={28} />
-              </div>
+              <Upload size={28} className={dragging ? "text-indigo-500" : "text-gray-400"} />
               <div className="text-center">
                 <p className="font-semibold text-gray-700 dark:text-gray-200">Select or drop an image</p>
-                <p className="text-gray-400 dark:text-gray-500 text-sm">PNG, JPG, WEBP, HEIC</p>
+                <p className="text-gray-400 text-sm">PNG, JPG, WEBP, HEIC</p>
               </div>
               <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && analyzeFile(e.target.files[0])} />
             </div>
           ) : (
-            <div className="space-y-6 animate-slide-up">
-              <div className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/2 px-5 py-4">
+            <div className="space-y-6">
+              {/* File Info Card */}
+              <div className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0c111d] px-5 py-4">
                 <div className="flex items-center gap-3">
-                  <FileImage size={20} className="text-indigo-500" />
+                  <FileImage size={20} className="text-indigo-600 dark:text-indigo-400" />
                   <div>
-                    <p className="text-sm font-bold truncate max-w-[200px]">{file.name}</p>
-                    <p className="text-xs text-gray-400">{formatBytes(file.size)}</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[200px]">{file.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{formatBytes(file.size)}</p>
                   </div>
                 </div>
-                <button onClick={reset} className="text-gray-400 hover:text-red-500"><X size={20} /></button>
+                <button onClick={() => setFile(null)} className="text-gray-400 hover:text-red-500"><X size={20} /></button>
               </div>
 
+              {/* Risk Badge */}
               {riskInfo && RiskIcon && (
                 <div className={`flex gap-4 rounded-xl border px-5 py-4 ${riskInfo.bg}`}>
                   <RiskIcon size={24} className={`shrink-0 ${riskInfo.color}`} />
                   <div>
-                    <p className={`font-bold text-sm ${riskInfo.color}`}>{riskInfo.emoji} {riskInfo.label} Privacy Risk</p>
+                    <p className={`font-bold text-sm ${riskInfo.color}`}>{riskInfo.emoji} {riskInfo.label} Risk</p>
                     <p className="text-gray-600 dark:text-gray-400 text-xs mt-1 leading-relaxed">{riskInfo.desc}</p>
                   </div>
                 </div>
               )}
 
-              <SizeBar original={file.size} cleaned={result?.size} />
+              {/* Size Reduction Card */}
+              <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0c111d] px-5 py-4">
+                 <p className="text-[10px] font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400 mb-3">Security Compression</p>
+                 <div className="flex items-center gap-6">
+                    <div>
+                       <p className="text-[11px] text-gray-400 mb-1">Original</p>
+                       <p className="text-lg font-semibold text-gray-900 dark:text-white">{formatBytes(file.size)}</p>
+                    </div>
+                    <div className="text-gray-300">→</div>
+                    <div>
+                       <p className="text-[11px] text-gray-400 mb-1">Cleaned</p>
+                       <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">{result ? formatBytes(result.size) : "—"}</p>
+                    </div>
+                 </div>
+              </div>
 
+              {/* Tables */}
               <div className="space-y-4">
                 <MetaTable title="Source Metadata Analysis" tags={tags} empty={false} />
                 <MetaTable title="Cleaned Output Structure" tags={result ? {} : tags} empty={!result} />
               </div>
 
+              {/* Action Buttons */}
               <div className="flex gap-4 pt-2">
                 {!result ? (
-                  <button onClick={handleStrip} disabled={processing} className="flex-1 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 transition-all">
+                  <button onClick={handleStrip} disabled={processing} className="flex-1 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-50">
                     {processing ? <><Loader2 size={18} className="animate-spin"/> Scrubbing...</> : <><ShieldCheck size={18}/> Remove Metadata</>}
                   </button>
                 ) : (
-                  <a href={result.url} download={`clean_${file.name}`} className="flex-1 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg transition-all">
+                  <a href={result.url} download={`clean_${file.name}`} className="flex-1 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-2">
                     <Download size={18}/> Download Secured Copy
                   </a>
                 )}
-                <button onClick={reset} className="px-6 py-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 font-semibold text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 transition-all">Reset</button>
+                <button onClick={() => setFile(null)} className="px-6 py-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 font-semibold text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10">Reset</button>
               </div>
             </div>
           )}
         </main>
-
-        <footer className="text-center text-xs text-gray-400 pb-10">
-          StealthStrip — Production Build 1.0.0
-        </footer>
-
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        
+        {toast && (
+          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border bg-gray-900 text-white shadow-2xl animate-slide-up">
+            <span className="text-sm font-medium">{toast.message}</span>
+          </div>
+        )}
       </div>
     </div>
   );
