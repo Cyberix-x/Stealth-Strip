@@ -23,7 +23,7 @@ const RISK_LEVELS = {
     dot: "bg-amber-500",
     icon: ShieldAlert,
     emoji: "🟡",
-    desc: "Camera/Date metadata found – device specifications and timestamps are exposed.",
+    desc: "Camera metadata found – device specifications and timestamps are exposed.",
   },
   SAFE: {
     label: "Safe",
@@ -217,7 +217,7 @@ export default function App() {
   const riskInfo = risk ? RISK_LEVELS[risk] : null;
 
   return (
-    <div className={dark ? "dark" : ""}>
+    <div className={dark ? "dark" : "light"}>
       <div className="min-h-screen bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-white font-sans transition-colors duration-500">
         <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-200 dark:border-white/5">
           <div className="flex items-center gap-2.5">
@@ -240,9 +240,11 @@ export default function App() {
 
         <main className="max-w-3xl mx-auto px-6 pt-16 pb-20">
           <div className="text-center mb-12 space-y-4">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
               Scrub Image Metadata <br />
-              <span className="text-indigo-600 dark:text-indigo-400">Privately & Securely</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-400">
+                Privately & Securely
+              </span>
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-base max-w-xl mx-auto">
               Metadata Analysis: Sensitive location coordinates and device identifiers detected.
@@ -255,13 +257,18 @@ export default function App() {
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
               onClick={() => inputRef.current.click()}
-              className={`relative rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-4 py-20
-                ${dragging ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/5" : "border-gray-300 dark:border-white/10 bg-white dark:bg-white/2 hover:border-gray-400 dark:hover:border-white/20"}`}
+              className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer flex flex-col items-center justify-center gap-4 py-20
+                ${dragging 
+                  ? "border-indigo-500 bg-indigo-500/10" 
+                  : "border-gray-300 dark:border-white/10 bg-white dark:bg-[#0c111d] hover:border-gray-400 dark:hover:border-white/20 shadow-sm dark:shadow-none"}`}
             >
-              <Upload size={32} className={dragging ? "text-indigo-500" : "text-gray-400"} />
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all
+                ${dragging ? "bg-indigo-500/20 text-indigo-400" : "bg-gray-100 dark:bg-white/5 text-gray-400"}`}>
+                <Upload size={28} />
+              </div>
               <div className="text-center">
-                <p className="font-semibold text-gray-700 dark:text-gray-300">Select or drop an image</p>
-                <p className="text-gray-400 text-sm">PNG, JPG, WEBP, HEIC</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-200">Select or drop an image</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm">PNG, JPG, WEBP, HEIC</p>
               </div>
               <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && analyzeFile(e.target.files[0])} />
             </div>
