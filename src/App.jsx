@@ -1,8 +1,20 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import ExifReader from "exifreader";
 import {
-  ShieldCheck, ShieldAlert, ShieldX, Upload, Download, Moon, Sun, Loader2, X, FileImage,
-  ChevronDown, ChevronUp, CheckCircle2, AlertCircle,
+  ShieldCheck, 
+  ShieldAlert, 
+  ShieldX, 
+  Upload, 
+  Download, 
+  Moon, 
+  Sun, 
+  Loader2, 
+  X, 
+  FileImage, 
+  ChevronDown, 
+  ChevronUp, 
+  CheckCircle2, 
+  AlertCircle 
 } from "lucide-react";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
