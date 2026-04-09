@@ -1,20 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import ExifReader from "exifreader";
 import {
-  ShieldCheck, 
-  ShieldAlert, 
-  ShieldX, 
-  Upload, 
-  Download, 
-  Moon, 
-  Sun, 
-  Loader2, 
-  X, 
-  FileImage, 
-  ChevronDown, 
-  ChevronUp, 
-  CheckCircle2, 
-  AlertCircle 
+  ShieldCheck, ShieldAlert, ShieldX, Upload, Download, Moon, Sun, Loader2, X, FileImage,
+  ChevronDown, ChevronUp, CheckCircle2, AlertCircle,
 } from "lucide-react";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -23,7 +11,6 @@ const RISK_LEVELS = {
     label: "Critical",
     color: "text-red-600 dark:text-red-400",
     bg: "bg-red-50 dark:bg-red-400/10 border-red-200 dark:border-red-400/30",
-    dot: "bg-red-500",
     icon: ShieldX,
     emoji: "🔴",
     desc: "GPS/Location data found – your precise whereabouts are embedded in this image.",
@@ -32,7 +19,6 @@ const RISK_LEVELS = {
     label: "Warning",
     color: "text-amber-600 dark:text-yellow-400",
     bg: "bg-amber-50 dark:bg-yellow-400/10 border-amber-200 dark:border-yellow-400/30",
-    dot: "bg-amber-500",
     icon: ShieldAlert,
     emoji: "🟡",
     desc: "Camera metadata found – device specifications and timestamps are exposed.",
@@ -41,7 +27,6 @@ const RISK_LEVELS = {
     label: "Safe",
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-400/10 border-emerald-200 dark:border-emerald-400/30",
-    dot: "bg-emerald-500",
     icon: ShieldCheck,
     emoji: "🟢",
     desc: "No sensitive metadata detected. Your privacy is intact.",
@@ -86,7 +71,7 @@ function Toast({ message, type, onClose }) {
 
 function MetaTable({ title, tags, empty }) {
   const [open, setOpen] = useState(true);
-  const rows = Object.entries(tags);
+  const rows = Object.entries(tags || {});
   return (
     <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden bg-gray-50/50 dark:bg-white/2">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between px-5 py-3 bg-gray-100/50 dark:bg-white/3 hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors">
@@ -166,10 +151,10 @@ export default function App() {
   const [counter, setCounter] = useState(null);
   const inputRef = useRef();
 
-  const showToast = (message, type = "success") => {
+  const showToast = useCallback((message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
-  };
+  }, []);
 
   const analyzeFile = useCallback(async (f) => {
     if (!f.type.startsWith("image/")) {
@@ -184,17 +169,17 @@ export default function App() {
       const buf = await f.arrayBuffer();
       const extracted = ExifReader.load(buf, { expanded: true });
       const flat = {};
-      for (const group of Object.values(extracted)) {
+      Object.values(extracted).forEach(group => {
         if (group && typeof group === "object") Object.assign(flat, group);
-      }
+      });
       delete flat.MakerNote;
       setTags(flat);
       setRisk(assessRisk(flat));
-    } catch {
+    } catch (e) {
       setTags({});
       setRisk("SAFE");
     }
-  }, []);
+  }, [showToast]);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -225,11 +210,11 @@ export default function App() {
 
   const reset = () => { setFile(null); setTags(null); setRisk(null); setResult(null); };
 
-  const RiskIcon = risk ? RISK_LEVELS[risk].icon : null;
   const riskInfo = risk ? RISK_LEVELS[risk] : null;
+  const RiskIcon = riskInfo?.icon;
 
   return (
-    <div className={dark ? "dark" : "light"}>
+    <div className={dark ? "dark" : ""}>
       <div className="min-h-screen bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-white font-sans transition-colors duration-500">
         <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-200 dark:border-white/5">
           <div className="flex items-center gap-2.5">
@@ -297,7 +282,7 @@ export default function App() {
                 <button onClick={reset} className="text-gray-400 hover:text-red-500"><X size={20} /></button>
               </div>
 
-              {riskInfo && (
+              {riskInfo && RiskIcon && (
                 <div className={`flex gap-4 rounded-xl border px-5 py-4 ${riskInfo.bg}`}>
                   <RiskIcon size={24} className={`shrink-0 ${riskInfo.color}`} />
                   <div>
