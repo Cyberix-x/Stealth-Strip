@@ -46,7 +46,7 @@ stealthstrip/
 1. **Client-side scan** — `exifreader` reads EXIF tags in the browser without uploading
 2. **Risk Assessment** — 🔴 GPS found / 🟡 Camera+Date found / 🟢 Clean
 3. **Server strip** — `POST /api/strip` sends the file to `sharp` which re-encodes the image without any metadata
-4. **Counter** — MongoDB Atlas increments `totalFilesProcessed` on every successful strip
+4. **Counter** — MongoDB Atlas increments `totalFilesProcessed` on every successful strip.
 5. **Download** — A Blob URL is created client-side for instant one-click download.
 
 ---
