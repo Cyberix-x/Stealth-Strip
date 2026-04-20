@@ -1,6 +1,6 @@
 # StealthStrip 🛡️
 
-> Free, private image metadata remover MERN-lite on Vercel
+> Free, private image metadata remover MERN-lite on Vercel.
 
 ---
 ## Live Demo
